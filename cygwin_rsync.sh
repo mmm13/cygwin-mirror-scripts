@@ -19,26 +19,26 @@ MSG="Cygwin files failed to synced. See ${LOGFILE} for details."
 RC=1
 
 # Checks to see if the rsync job is running. If not, it runs. This prevents the jobs from stepping on each other.
-if ! ps -ef | grep -v grep | grep -q 'rsync -qaH --del rsync:\/\/mirrors.kernel.org\/sourceware\/cygwin\/ \/repos\/cygwin\/'
+if ! ps -ef | grep -v grep | grep -q 'cygwin-rsync.sh'
 then
+	echo "`/bin/date '+%Y/%m/%d %H:%M:%S'` Starting cygwin-rsync.sh." >> ${LOGFILE}
         #using loop to continue rsync when disconnect occurs
         while [ $RC -gt 0 ]
         do
 #               rsync -Rdtlzvh --partial --delete --progress --stats --log-file=${LOGFILE} ${SOURCE_PATH} ${REPO_PATH}
                 rsync -qaH --log-file=${LOGFILE} ${SOURCE_PATH} ${REPO_PATH}
                 RC=$?
-                echo "Rsync exit code was ${RC}." >> ${LOGFILE}
+		echo "`/bin/date '+%Y/%m/%d %H:%M:%S'` cygwin Rsync exit code was ${RC}." >> ${LOGFILE}
         done
+	echo "`/bin/date '+%Y/%m/%d %H:%M:%S'` Finished cygwin-rsync.sh." >> ${LOGFILE}
 else
         MSG="cygwin_rsync.sh already running.  Not starting"
-fi
-
-if [ $RC -ne 0 ]
-then
-        echo ${MSG} | mutt -s "cygwin_rsync.sh" mmm13@gmail.com
+	echo ${MSG} | mutt -s "cygwin_rsync.sh" mmm13@gmail.com
+	echo "`/bin/date '+%Y/%m/%d %H:%M:%S'` cygwin-rsync.sh already running." >> ${LOGFILE}
 fi
 
 gzip -f ${LOGFILE}
+
 #
 # download setup*exe files if they have an older timestamp
 #
